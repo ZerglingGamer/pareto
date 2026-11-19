@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Pareto — управление потерями на кухне</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;background:#F5F7FA;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:15px}
+a{color:#0056D2}
+.hidden{display:none!important}
+.muted{color:#6B7280;font-size:14px}
+.screen{display:none}
+.screen.active{display:block}
+#screen-operator{min-height:100vh;background:#121212;color:#F5F5F5}
+#screen-operator.active{display:flex;flex-direction:column}
+
+/* ============ LOGIN ============ */
+.login-wrap{display:grid;grid-template-columns:1.05fr 1fr;min-height:100vh}
+.login-hero{background:linear-gradient(155deg,#0056D2 0%,#00317A 100%);color:#fff;padding:56px 56px;display:flex;flex-direction:column;justify-content:center;gap:22px}
+.hero-logo{font-size:34px;font-weight:800;letter-spacing:-1px}
+.login-hero h1{margin:0;font-size:30px;line-height:1.25;font-weight:800;letter-spacing:-.5px;max-width:520px}
+.hero-sub{margin:0;font-size:15.5px;line-height:1.55;opacity:.9;max-width:520px}
+.hero-list{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-direction:column;gap:12px;max-width:520px}
+.hero-list li{font-size:15px;line-height:1.45;padding-left:26px;position:relative;opacity:.95}
+.hero-list li:before{content:"✓";position:absolute;left:0;top:0;font-weight:800;color:#8AB4FF}
+.hero-contacts{margin-top:12px;display:flex;flex-direction:column;gap:6px;font-size:15px;opacity:.95}
+.hero-contacts a{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.4)}
+.login-panel{background:#fff;padding:56px 48px;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:640px;width:100%;margin:0 auto}
+.login-panel h2{margin:0;font-size:26px;font-weight:800;letter-spacing:-.4px}
+.login-panel>p{margin:0 0 6px}
+.role-card{display:flex;align-items:center;gap:16px;text-align:left;padding:16px 18px;border:2px solid #E6EAF0;border-radius:14px;background:#fff;transition:.15s;width:100%}
+.role-card:hover{border-color:#B9CEF5;background:#FAFCFF}
+.role-card.sel{border-color:#0056D2;background:#F2F7FF;box-shadow:0 0 0 3px rgba(0,86,210,.1)}
+.role-icon{font-size:30px;line-height:1}
+.role-card b{display:block;font-size:16px;margin-bottom:2px}
+.role-card small{display:block;color:#6B7280;font-size:12.5px;line-height:1.35;font-weight:400}
+.login-form{margin-top:8px;padding:18px;border-radius:14px;background:#F8FAFD;border:1px solid #E6EAF0;display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#3A4453}
+.inp{width:100%;padding:11px 13px;border:1px solid #D9DFE8;border-radius:10px;background:#fff;font-size:15px;color:#1A1A1A;outline:none;transition:.15s}
+.inp:focus{border-color:#0056D2;box-shadow:0 0 0 3px rgba(0,86,210,.12)}
+.btn{padding:10px 16px;border-radius:10px;font-size:14px;font-weight:700;background:#EEF2F7;color:#1A1A1A;transition:.15s;white-space:nowrap}
+.btn:hover{background:#E3E9F2}
+.btn.primary{background:#0056D2;color:#fff}
+.btn.primary:hover{background:#0048AE}
+.btn.danger{background:#FDECEC;color:#D32F2F}
+.btn.danger:hover{background:#FBDCDC}
+.btn.small{padding:6px 10px;font-size:12.5px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:default}
+.form-msg{font-size:13.5px;font-weight:600;min-height:18px}
+.form-msg.err{color:#D32F2F}
+.form-msg.ok{color:#2E7D32}
+.hint{font-size:12.5px;color:#8A94A6;line-height:1.5}
+
+/* PIN */
+.shift-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.shift-card{padding:20px 12px;border-radius:14px;border:2px solid #E6EAF0;background:#fff;font-size:16px;font-weight:700;transition:.15s}
+.shift-card:hover{border-color:#0056D2;background:#F2F7FF}
+.pin-shift{font-size:14px;color:#5B6472;text-align:center}
+.pin-dots{display:flex;justify-content:center;gap:14px;padding:6px 0}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #C9D2DF;background:#fff}
+.pin-dot.on{background:#0056D2;border-color:#0056D2}
+.pin-error{color:#D32F2F;font-size:13px;font-weight:600;text-align:center;min-height:18px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:320px;margin:0 auto;width:100%}
+.keypad button{height:60px;border-radius:12px;background:#fff;border:1px solid #E1E7F0;font-size:22px;font-weight:700;transition:.1s}
+.keypad button:active{transform:scale(.95);background:#EEF3FB}
+.keypad button[data-key="ok"]{background:#0056D2;color:#fff;border-color:#0056D2}
+.link-btn{background:none;color:#0056D2;font-size:13.5px;font-weight:600;padding:6px;align-self:center}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.shake{animation:shake .3s}
+
+/* ============ CLIENT (big buttons entry) ============ */
+.op-header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #242424;background:#121212;position:sticky;top:0;z-index:10}
+.op-shift{font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op-shift small{display:block;font-size:11px;font-weight:500;color:#8A94A6;margin-top:2px}
+.op-status{margin-left:auto;font-size:11px;font-weight:700;padding:5px 9px;border-radius:20px;background:#1E2A1E;color:#7BC47F;white-space:nowrap;flex-shrink:0}
+.op-status.off{background:#2A2318;color:#FFC107}
+.op-icon-btn{width:34px;height:34px;border-radius:10px;background:#1E1E1E;color:#B9C2CF;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.op-icon-btn:active{transform:scale(.94)}
+.op-main{flex:1;display:flex;flex-direction:column;padding:16px;gap:14px;min-height:0}
+.op-title{font-size:22px;font-weight:800;letter-spacing:-.4px}
+.op-sub{font-size:14px;color:#8A94A6;margin-top:-8px}
+.op-topbar{display:flex;align-items:center;gap:12px}
+.op-back{background:#1E1E1E;color:#D6DEE9;padding:9px 14px;border-radius:10px;font-size:14px;font-weight:600}
+.op-step{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0}
+.op-cat{flex:1;min-height:110px;border-radius:16px;background:#1E1E1E;border:2px solid #2C2C2C;display:flex;align-items:center;gap:20px;padding:0 24px;font-size:24px;font-weight:800;color:#F5F5F5;text-align:left;transition:transform .08s,background .15s,border-color .15s}
+.op-cat:active{transform:scale(.97);background:#2A2A2A;border-color:#0056D2}
+.op-icon{font-size:44px;line-height:1}
+.op-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-content:start}
+.op-reason{min-height:104px;border-radius:16px;background:#1E1E1E;border:2px solid #2C2C2C;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;padding:14px 16px;text-align:left;transition:transform .08s,background .15s,border-color .15s}
+.op-reason:active{transform:scale(.96);background:#2A2A2A;border-color:#2E7D32}
+.op-reason .op-icon{font-size:30px}
+.op-reason-name{font-size:18px;font-weight:700;line-height:1.2}
+.op-reason-cost{font-size:12px;color:#8A94A6;font-weight:600}
+.op-grid.stations{grid-template-columns:1fr 1fr}
+.op-station{min-height:80px;border-radius:14px;background:#1E1E1E;border:2px solid #2C2C2C;font-size:19px;font-weight:700;color:#F5F5F5;transition:.12s}
+.op-station.sel{background:#0F2A12;border-color:#2E7D32;color:#8BE08F}
+.op-station:active{transform:scale(.96)}
+.op-footer{padding:12px 16px 22px;border-top:1px solid #242424;background:#121212;position:sticky;bottom:0}
+.btn-done{width:100%;height:84px;border-radius:16px;background:#2E7D32;color:#fff;font-size:26px;font-weight:800;letter-spacing:.2px;transition:.1s;box-shadow:0 6px 20px rgba(46,125,50,.35)}
+.btn-done:active{transform:scale(.98);background:#256428}
+.op-success{position:fixed;inset:0;background:#121212;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:60;padding:24px;text-align:center;animation:fadeIn .15s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+.op-check{width:140px;height:140px;border-radius:50%;background:#2E7D32;display:flex;align-items:center;justify-content:center;font-size:78px;color:#fff;animation:pop .35s ease-out}
+.op-success-title{font-size:28px;font-weight:800}
+.op-success-sub{font-size:15px;color:#8A94A6;max-width:420px;line-height:1.4}
+.op-undo{background:#1E1E1E;color:#B9C2CF;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600}
+
+/* ============ OPERATOR (dashboard) ============ */
+.cl-header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #E6EAF0;display:flex;align-items:center;gap:24px;padding:0 24px;height:64px}
+.cl-logo{font-weight:800;font-size:20px;color:#0056D2;letter-spacing:-.6px}
+.cl-tabs{display:flex;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none}
+.cl-tabs::-webkit-scrollbar{display:none}
+.cl-tab{padding:9px 14px;border-radius:9px;font-size:14px;font-weight:600;color:#5B6472;white-space:nowrap;transition:.15s}
+.cl-tab:hover{background:#F3F6FA}
+.cl-tab.active{background:#E8F0FE;color:#0056D2}
+.badge{display:inline-block;min-width:18px;padding:0 5px;height:18px;line-height:18px;border-radius:9px;background:#D32F2F;color:#fff;font-size:11px;font-weight:700;text-align:center;margin-left:4px}
+.cl-user{display:flex;align-items:center;gap:10px;font-size:13.5px;color:#5B6472;font-weight:600}
+.cl-main{max-width:1220px;margin:0 auto;padding:24px 24px 60px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.page-head h2{margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.5px}
+.head-controls{display:flex;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;background:#EEF2F7;padding:4px;border-radius:10px;gap:2px}
+.seg button{padding:7px 13px;border-radius:7px;font-size:13px;font-weight:700;color:#5B6472;transition:.15s}
+.seg button.active{background:#fff;color:#0056D2;box-shadow:0 1px 3px rgba(0,0,0,.09)}
+.card{background:#fff;border:1px solid #E6EAF0;border-radius:14px;padding:20px;margin-bottom:16px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.card-head h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.2px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid #E6EAF0;border-radius:14px;padding:18px}
+.kpi-label{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#8A94A6;font-weight:700;margin-bottom:8px}
+.kpi-value{font-size:28px;font-weight:800;letter-spacing:-.8px;line-height:1.1}
+.kpi-value.small{font-size:18px;line-height:1.25}
+.kpi-sub{font-size:12.5px;color:#8A94A6;margin-top:6px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:#8A94A6;padding:10px 12px;border-bottom:1px solid #E6EAF0;font-weight:700;white-space:nowrap}
+.tbl td{padding:11px 12px;border-bottom:1px solid #F1F4F8;vertical-align:middle}
+.tbl tbody tr:nth-child(even){background:#FAFBFD}
+.tbl tbody tr:hover{background:#F3F7FD}
+.num{text-align:right}
+.right{text-align:right}
+.tag{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;background:#EEF2F7;color:#4A5568}
+.tag.blue{background:#E8F0FE;color:#0056D2}
+.tag.red{background:#FDECEC;color:#D32F2F}
+.tag.green{background:#E9F5EA;color:#2E7D32}
+.tag.yellow{background:#FFF6DD;color:#9A7000}
+.empty{padding:34px 10px;text-align:center;color:#8A94A6;font-size:14px}
+.pareto-svg{width:100%;height:auto;display:block;animation:fadeIn .35s}
+.legend{display:flex;gap:20px;flex-wrap:wrap;font-size:13px;color:#5B6472;margin-top:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.insight{background:linear-gradient(135deg,#F2F7FF,#EAF2FF);border:1px solid #CFE0FB;border-radius:12px;padding:16px;font-size:14px;line-height:1.5;color:#233A63}
+.insight b{color:#0056D2}
+.two-col{display:grid;grid-template-columns:1.45fr 1fr;gap:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.row .inp{flex:1;min-width:160px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;background:#F3F6FA;border-radius:20px;font-size:13.5px;font-weight:600}
+.chip button{color:#98A2B3;font-size:14px;line-height:1}
+.chip button:hover{color:#D32F2F}
+.reason-group{margin-bottom:18px}
+.reason-group-title{font-size:13px;font-weight:800;color:#0056D2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.shift-name{font-weight:700;font-size:14px;min-width:90px}
+.pin-input{max-width:110px;letter-spacing:4px;font-weight:700;text-align:center}
+.danger-card{border-color:#F6D6D6;background:#FFFBFB}
+.contact-row{font-size:15px;margin-bottom:10px;display:flex;gap:8px;align-items:center}
+.contact-row a{text-decoration:none;font-weight:600}
+.ticket{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #F1F4F8;font-size:13.5px}
+.ticket:last-child{border-bottom:none}
+.ticket-id{font-weight:800;color:#0056D2;white-space:nowrap}
+.badge-tg{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:#E8F0FE;color:#0056D2}
+.badge-vk{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:#E6F0FA;color:#0077FF}
+.badge-max{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:#F0E9FB;color:#7B3FE4}
+.alert-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #F1F4F8;font-size:13.5px;align-items:flex-start}
+.alert-item:last-child{border-bottom:none}
+.alert-time{color:#8A94A6;white-space:nowrap;font-size:12.5px;font-weight:600;min-width:112px}
+.modal-overlay{position:fixed;inset:0;background:rgba(16,24,40,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100;animation:fadeIn .15s}
+.modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:460px;max-height:90vh;overflow:auto}
+.modal h3{margin:0 0 16px;font-size:18px;font-weight:800}
+.modal .field{margin-bottom:12px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-20px);background:#1A1A1A;color:#fff;padding:12px 20px;border-radius:12px;font-size:13.5px;font-weight:600;z-index:200;opacity:0;transition:.25s;max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:980px){
+  .login-wrap{grid-template-columns:1fr}
+  .login-hero{padding:36px 24px}
+  .login-hero h1{font-size:24px}
+  .login-panel{padding:32px 24px}
+  .two-col{grid-template-columns:1fr}
+  .cl-header{gap:12px;padding:0 14px}
+  .cl-main{padding:16px 14px 60px}
+  .op-grid.stations{grid-template-columns:1fr 1fr}
+}
+@media (max-width:420px){
+  .op-reason-name{font-size:16px}
+  .op-cat{font-size:20px}
+  .op-icon{font-size:34px}
+}
+@media print{
+  .cl-header,.head-controls,.btn,.seg{display:none!important}
+  .card{break-inside:avoid;border-color:#ccc}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<section id="screen-login" class="screen active">
+  <div class="login-wrap">
+    <div class="login-hero">
+      <div class="hero-logo">Pareto</div>
+      <h1>Топ‑5 причин потерь вашей кухни — на одном экране</h1>
+      <p class="hero-sub">Цифровая фиксация списаний, брака и простоев за 10 секунд. Автоматическая диаграмма Парето и переход от «поиска виноватых» к устранению системных сбоев.</p>
+      <ul class="hero-list">
+        <li><b>3 нажатия</b> — фиксация потери за 10 секунд</li>
+        <li><b>Автоматический Топ‑5</b> — диаграмма Парето в реальном времени</li>
+        <li><b>−1–3%</b> себестоимости за счёт устранения корневых причин</li>
+        <li><b>−80%</b> времени на аналитику потерь</li>
+      </ul>
+      <div class="hero-contacts">
+        <div>📞 <a href="tel:+79289887307">+7 (928) 988-73-07</a></div>
+        <div>✉️ <a href="mailto:nikitakurdubov@gmail.com">nikitakurdubov@gmail.com</a></div>
+      </div>
+    </div>
+
+    <div class="login-panel">
+      <h2>Вход в систему</h2>
+      <p class="muted">Выберите роль</p>
+
+      <button class="role-card" id="roleClient">
+        <span class="role-icon">📝</span>
+        <span><b>Клиент</b><small>Фиксация потерь — 3 нажатия, крупные кнопки</small></span>
+      </button>
+      <button class="role-card" id="roleOperator">
+        <span class="role-icon">📊</span>
+        <span><b>Оператор</b><small>Аналитика — дашборд, Топ‑5, алерты, справочники</small></span>
+      </button>
+
+      <!-- CLIENT LOGIN -->
+      <div id="clientLoginForm" class="login-form hidden">
+        <label class="field"><span>Логин</span>
+          <input id="clientLogin" class="inp" value="client" autocomplete="username"></label>
+        <label class="field"><span>Пароль</span>
+          <input id="clientPass" class="inp" type="password" value="1234" autocomplete="current-password"></label>
+        <button class="btn primary" id="clientLoginBtn">Войти как клиент</button>
+        <div class="form-msg err" id="clientError"></div>
+      </div>
+
+      <!-- OPERATOR LOGIN -->
+      <div id="operatorLoginForm" class="login-form hidden">
+        <div id="shiftPicker">
+          <div class="hint" style="margin-bottom:10px">Выберите смену</div>
+          <div class="shift-cards">
+            <button class="shift-card" data-shift="shift1">Смена 1</button>
+            <button class="shift-card" data-shift="shift2">Смена 2</button>
+          </div>
+        </div>
+        <div id="pinPad" class="hidden">
+          <div class="pin-shift">Смена: <b id="pinShiftName"></b></div>
+          <div class="pin-dots" id="pinDots"></div>
+          <div class="pin-error" id="pinError"></div>
+          <div class="keypad">
+            <button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button>
+            <button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button>
+            <button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button>
+            <button data-key="del">⌫</button><button data-key="0">0</button><button data-key="ok">OK</button>
+          </div>
+          <button class="link-btn" id="pinBack">← Назад к выбору смены</button>
+        </div>
+      </div>
+
+      <div class="hint">Демо‑доступы: клиент <b>client / 1234</b> (фиксация потерь) · оператор: Смена 1 — <b>1234</b>, Смена 2 — <b>4321</b> (аналитика)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CLIENT (big buttons entry) ================= -->
+<section id="screen-operator" class="screen">
+  <header class="op-header">
+    <div class="op-shift"><span id="opShiftName">—</span><small>Режим фиксации потерь</small></div>
+    <div class="op-status" id="opSync">Онлайн</div>
+    <button class="op-icon-btn" id="opHelp" title="Контакты поддержки">📞</button>
+    <button class="op-icon-btn" id="opOfflineToggle" title="Демо-режим офлайн">📶</button>
+    <button class="op-icon-btn" id="opLogout" title="Выйти">✕</button>
+  </header>
+  <main class="op-main" id="opMain"></main>
+  <footer class="op-footer hidden" id="opFooter">
+    <button class="btn-done" id="opDone">Готово</button>
+  </footer>
+</section>
+
+<!-- ================= OPERATOR (dashboard) ================= -->
+<section id="screen-client" class="screen">
+  <header class="cl-header">
+    <div class="cl-logo">Pareto</div>
+    <nav class="cl-tabs">
+      <button class="cl-tab active" data-tab="dashboard">Дашборд</button>
+      <button class="cl-tab" data-tab="events">События</button>
+      <button class="cl-tab" data-tab="alerts">Уведомления</button>
+      <button class="cl-tab" data-tab="settings">Настройки</button>
+      <button class="cl-tab" data-tab="support">Поддержка</button>
+    </nav>
+    <div class="cl-user"><span id="clUserLabel">Оператор</span> <button class="btn small" id="clLogout">Выйти</button></div>
+  </header>
+  <main class="cl-main" id="clMain"></main>
+</section>
+
+<!-- MODAL -->
+<div id="modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn" id="modalCancel">Отмена</button>
+      <button class="btn primary" id="modalSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   PARETO — приложение
+   Клиент: фиксация потерь (крупные кнопки)
+   Оператор: аналитика (дашборд, Топ-5, события, алерты, справочники)
+   ===================================================================== */
+const DB_KEY = 'pareto_db_v2';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const el = id => document.getElementById(id);
+const uuid = () => 'id_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtNum = n => new Intl.NumberFormat('ru-RU').format(Math.round(n || 0));
+const fmtMoney = n => new Intl.NumberFormat('ru-RU').format(Math.round(n || 0)) + ' ₽';
+const fmtDateTime = ts => new Date(ts).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'});
+
+/* ---------------- Справочники по умолчанию ---------------- */
+const DEFAULT_CATEGORIES = [
+  {id:'writeoff', name:'Списание продукта', emoji:'🗑️'},
+  {id:'return',   name:'Возврат из зала',   emoji:'↩️'},
+  {id:'downtime', name:'Простой',           emoji:'⏸️'}
+];
+
+const DEFAULT_REASONS = [
+  {id:'r_fried',     categoryId:'writeoff', name:'Пережарил',                  group:'Брак кухни',      emoji:'🔥', cost:250},
+  {id:'r_dropped',   categoryId:'writeoff', name:'Упало / разбилось',          group:'Брак кухни',      emoji:'💧', cost:150},
+  {id:'r_supplier',  categoryId:'writeoff', name:'Плохой продукт от поставщика', group:'Брак поставщика', emoji:'📦', cost:400},
+  {id:'r_expired',   categoryId:'writeoff', name:'Истёк срок годности',        group:'Брак кухни',      emoji:'⏳', cost:300},
+  {id:'r_prep',      categoryId:'writeoff', name:'Ошибка заготовки',           group:'Брак кухни',      emoji:'🔪', cost:200},
+  {id:'r_equip',     categoryId:'writeoff', name:'Сбой оборудования',          group:'Оборудование',    emoji:'⚙️', cost:500},
+  {id:'r_wrongdish', categoryId:'return',   name:'Перепутали блюдо',           group:'Ошибки зала',     emoji:'🔄', cost:350},
+  {id:'r_cold',      categoryId:'return',   name:'Холодное блюдо',             group:'Брак кухни',      emoji:'❄️', cost:300},
+  {id:'r_salty',     categoryId:'return',   name:'Пересолено / невкусно',      group:'Брак кухни',      emoji:'🧂', cost:250},
+  {id:'r_slow',      categoryId:'return',   name:'Долгое ожидание',            group:'Ошибки зала',     emoji:'⏱️', cost:200},
+  {id:'r_changed',   categoryId:'return',   name:'Гость передумал',            group:'Ошибки зала',     emoji:'🙅', cost:300},
+  {id:'r_quality',   categoryId:'return',   name:'Жалоба на качество',         group:'Брак кухни',      emoji:'😠', cost:400},
+  {id:'r_breakdown', categoryId:'downtime', name:'Сбой оборудования',          group:'Оборудование',    emoji:'🔧', cost:800},
+  {id:'r_nostock',   categoryId:'downtime', name:'Нет продуктов (стоп‑лист)',  group:'Брак поставщика', emoji:'📉', cost:600},
+  {id:'r_delivery',  categoryId:'downtime', name:'Ожидание поставки',          group:'Брак поставщика', emoji:'🚚', cost:500},
+  {id:'r_staff',     categoryId:'downtime', name:'Нехватка персонала',         group:'Персонал',        emoji:'👥', cost:700},
+  {id:'r_techcard',  categoryId:'downtime', name:'Ошибка в техкарте',          group:'Брак кухни',      emoji:'📋', cost:300}
+];
+
+const DEFAULT_STATIONS = [
+  {id:'st_hot',    name:'Горячий цех'},
+  {id:'st_cold',   name:'Холодный цех'},
+  {id:'st_pastry', name:'Кондитерский цех'},
+  {id:'st_grill',  name:'Гриль'},
+  {id:'st_prep',   name:'Заготовочный цех'},
+  {id:'st_bar',    name:'Бар'},
+  {id:'st_hall',   name:'Зал'},
+  {id:'st_store',  name:'Склад'}
+];
+
+const CHANNELS = {
+  telegram: {label:'Telegram', cls:'badge-tg'},
+  vk:       {label:'VK',       cls:'badge-vk'},
+  max:      {label:'Max',      cls:'badge-max'}
+};
+
+/* ---------------- Хранилище ---------------- */
+function defaultDB(){
+  return {
+    categories: DEFAULT_CATEGORIES.map(c => ({...c})),
+    reasons: DEFAULT_REASONS.map(r => ({...r})),
+    stations: DEFAULT_STATIONS.map(s => ({...s})),
+    shifts: [
+      {id:'shift1', name:'Смена 1', pin:'1234'},
+      {id:'shift2', name:'Смена 2', pin:'4321'}
+    ],
+    events: [],
+    pending: [],
+    alerts: [],
+    rules: [
+      {id:'rule1', name:'3 возврата из зала за час', categoryId:'return',   reasonId:'any', threshold:3, windowMin:60,  channel:'telegram', enabled:true},
+      {id:'rule2', name:'5 списаний за 2 часа',      categoryId:'writeoff', reasonId:'any', threshold:5, windowMin:120, channel:'vk',       enabled:true},
+      {id:'rule3', name:'3 простоя за 4 часа',       categoryId:'downtime', reasonId:'any', threshold:3, windowMin:240, channel:'max',      enabled:false}
+    ],
+    tickets: [],
+    settings: {digest:{enabled:true, time:'11:00', channel:'telegram', lastSent:null}, lastFeedbackTs:0},
+    seeded: false
+  };
+}
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  const db = defaultDB();
+  saveDB(db);
+  return db;
+}
+function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+function getCurrentShift(){
+  const db = loadDB();
+  const h = new Date().getHours();
+  const id = h < 16 ? 'shift1' : 'shift2';
+  return db.shifts.find(s => s.id === id) || db.shifts[0];
+}
+
+/* ---------------- Демо-данные ---------------- */
+function ensureSeed(){
+  const db = loadDB();
+  if(db.seeded) return;
+  const weights = {
+    r_supplier:16, r_quality:11, r_cold:9, r_fried:8, r_expired:7,
+    r_breakdown:6, r_wrongdish:6, r_salty:5, r_slow:4, r_equip:4,
+    r_nostock:3, r_prep:3, r_delivery:2, r_changed:2, r_dropped:2, r_staff:2, r_techcard:1
+  };
+  const pool = [];
+  Object.keys(weights).forEach(id => { for(let i=0;i<weights[id];i++) pool.push(id); });
+  const now = Date.now();
+  const evs = [];
+  for(let i=0;i<115;i++){
+    const reason = db.reasons.find(r => r.id === pool[Math.floor(Math.random()*pool.length)]);
+    if(!reason) continue;
+    const cat = db.categories.find(c => c.id === reason.categoryId);
+    const station = db.stations[Math.floor(Math.random()*db.stations.length)];
+    let ts;
+    if(Math.random() < 0.3){
+      const d = new Date();
+      d.setHours(9 + Math.floor(Math.random()*12), Math.floor(Math.random()*60), 0, 0);
+      ts = Math.min(d.getTime(), now - 60000);
+    } else {
+      const daysAgo = 1 + Math.floor(Math.random()*13);
+      const d = new Date(now - daysAgo*86400000);
+      d.setHours(9 + Math.floor(Math.random()*12), Math.floor(Math.random()*60), 0, 0);
+      ts = d.getTime();
+    }
+    const shift = db.shifts[new Date(ts).getHours() < 16 ? 0 : 1];
+    evs.push({
+      id: uuid(), ts,
+      categoryId: cat.id, categoryName: cat.name,
+      reasonId: reason.id, reasonName: reason.name, group: reason.group,
+      cost: reason.cost,
+      stationId: station.id, stationName: station.name,
+      shiftId: shift.id, shiftName: shift.name
+    });
+  }
+  evs.sort((a,b) => a.ts - b.ts);
+  db.events = evs;
+  db.seeded = true;
+  saveDB(db);
+}
+
+/* ---------------- Агрегация и Парето ---------------- */
+function aggregate(events, metric){
+  const map = new Map();
+  events.forEach(e => {
+    if(!map.has(e.reasonId)){
+      map.set(e.reasonId, {id:e.reasonId, name:e.reasonName, group:e.group || '—', count:0, cost:0});
+    }
+    const o = map.get(e.reasonId);
+    o.count++;
+    o.cost += (e.cost || 0);
+  });
+  const arr = Array.from(map.values());
+  arr.forEach(x => { x.value = metric === 'cost' ? x.cost : x.count; });
+  arr.sort((a,b) => b.value - a.value);
+  const total = arr.reduce((s,x) => s + x.value, 0);
+  let cum = 0;
+  arr.forEach(x => {
+    cum += x.value;
+    x.pct = total ? (x.value / total * 100) : 0;
+    x.cumPct = total ? (cum / total * 100) : 0;
+  });
+  return {arr, total};
+}
+
+function periodRange(p){
+  const now = Date.now();
+  if(p === 'today'){
+    const d = new Date(); d.setHours(0,0,0,0);
+    return [d.getTime(), now];
+  }
+  if(p === 'week')  return [now - 7*86400000, now];
+  if(p === 'month') return [now - 30*86400000, now];
+  return [0, now];
+}
+
+function wrapLabel(str, max){
+  str = String(str);
+  const words = str.split(' ');
+  const lines = [];
+  let cur = '';
+  for(const w of words){
+    if(!cur){ cur = w; continue; }
+    if((cur + ' ' + w).length <= max){ cur += ' ' + w; }
+    else {
+      lines.push(cur);
+      cur = w;
+      if(lines.length === 2) break;
+    }
+  }
+  if(cur && lines.length < 2) lines.push(cur);
+  if(lines.length === 2 && (lines[0] + ' ' + lines[1]).replace(/ /g,'').length < str.replace(/ /g,'').length){
+    lines[1] = lines[1].length > max-1 ? lines[1].slice(0, max-1) + '…' : lines[1] + '…';
+  }
+  return lines.length ? lines : [''];
+}
+
+function renderParetoChart(items, target){
+  if(!items.length){
+    target.innerHTML = '<div class="empty">Нет зафиксированных потерь за выбранный период.<br>Войдите как «Клиент» и зафиксируйте событие.</div>';
+    return;
+  }
+  const W = 980, H = 430, padL = 74, padR = 74, padT = 34, padB = 132;
+  const iw = W - padL - padR, ih = H - padT - padB;
+  const total = items.reduce((s,i) => s + i.value, 0) || 1;
+  const maxVal = Math.max.apply(null, items.map(i => i.value)) || 1;
+  const n = items.length;
+  const slot = iw / n;
+  const barW = Math.min(88, slot * 0.58);
+  let cum = 0;
+  const pts = [];
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="pareto-svg" role="img" aria-label="Диаграмма Парето">';
+
+  for(let i=0;i<=4;i++){
+    const y = padT + ih - (ih * i / 4);
+    const v = Math.round(maxVal * i / 4);
+    s += '<line x1="' + padL + '" y1="' + y.toFixed(1) + '" x2="' + (W-padR) + '" y2="' + y.toFixed(1) + '" stroke="#E9EDF3"/>';
+    s += '<text x="' + (padL-14) + '" y="' + (y+4).toFixed(1) + '" text-anchor="end" font-size="12" fill="#8A94A6">' + fmtNum(v) + '</text>';
+    s += '<text x="' + (W-padR+14) + '" y="' + (y+4).toFixed(1) + '" font-size="12" fill="#8A94A6">' + (i*25) + '%</text>';
+  }
+
+  const y80 = padT + ih - 0.8*ih;
+  s += '<line x1="' + padL + '" y1="' + y80.toFixed(1) + '" x2="' + (W-padR) + '" y2="' + y80.toFixed(1) + '" stroke="#FFC107" stroke-width="1.5" stroke-dasharray="6 5"/>';
+  s += '<text x="' + (padL+6) + '" y="' + (y80-8).toFixed(1) + '" font-size="12" font-weight="700" fill="#B58900">80% потерь</text>';
+
+  items.forEach((it, i) => {
+    const x = padL + slot*i + (slot - barW)/2;
+    const h = Math.max(2, (it.value / maxVal) * ih);
+    const y = padT + ih - h;
+    const color = it.isOther ? '#B9C2CF' : '#0056D2';
+    s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="6" fill="' + color + '"/>';
+    s += '<text x="' + (x+barW/2).toFixed(1) + '" y="' + (y-10).toFixed(1) + '" text-anchor="middle" font-size="14" font-weight="700" fill="#1A1A1A">' + fmtNum(it.value) + '</text>';
+    const lines = wrapLabel(it.label, 15);
+    const cx = x + barW/2;
+    lines.forEach((ln, li) => {
+      s += '<text x="' + cx.toFixed(1) + '" y="' + (padT + ih + 26 + li*16).toFixed(1) + '" text-anchor="middle" font-size="12.5" fill="#5B6472">' + esc(ln) + '</text>';
+    });
+    cum += it.value;
+    const cumPct = cum / total * 100;
+    pts.push([cx, padT + ih - (cumPct/100)*ih]);
+  });
+
+  if(pts.length){
+    s += '<polyline points="' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + '" fill="none" stroke="#D32F2F" stroke-width="2.5" stroke-linejoin="round"/>';
+    pts.forEach(p => {
+      s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="4.5" fill="#fff" stroke="#D32F2F" stroke-width="2.5"/>';
+    });
+  }
+  s += '</svg>';
+  target.innerHTML = s;
+}
+
+/* ---------------- Алертинг ---------------- */
+function checkRules(db, ev){
+  const now = ev.ts;
+  const out = [];
+  db.rules.forEach(rule => {
+    if(!rule.enabled) return;
+    if(rule.categoryId !== 'any' && rule.categoryId !== ev.categoryId) return;
+    if(rule.reasonId !== 'any' && rule.reasonId !== ev.reasonId) return;
+    const since = now - rule.windowMin*60000;
+    const cnt = db.events.filter(e =>
+      e.ts >= since && e.ts <= now &&
+      (rule.categoryId === 'any' || e.categoryId === rule.categoryId) &&
+      (rule.reasonId === 'any' || e.reasonId === rule.reasonId)
+    ).length;
+    if(cnt < rule.threshold) return;
+    const last = db.alerts.filter(a => a.ruleId === rule.id).sort((a,b) => b.ts - a.ts)[0];
+    if(last && (now - last.ts) < rule.windowMin*60000) return;
+    const alert = {
+      id: uuid(), ts: now, ruleId: rule.id, ruleName: rule.name, channel: rule.channel,
+      message: 'Сработало правило «' + rule.name + '»: ' + cnt + ' событий за ' + rule.windowMin + ' мин (порог ' + rule.threshold + ').',
+      read: false
+    };
+    db.alerts.unshift(alert);
+    out.push(alert);
+  });
+  return out;
+}
+
+function flushPending(){
+  const db = loadDB();
+  if(!db.pending || !db.pending.length) return 0;
+  const items = db.pending.slice();
+  db.pending = [];
+  items.forEach(ev => { db.events.push(ev); checkRules(db, ev); });
+  saveDB(db);
+  return items.length;
+}
+
+/* ---------------- UI утилиты ---------------- */
+function toast(msg){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 4200);
+}
+function vibrate(ms){ if(navigator.vibrate) { try{ navigator.vibrate(ms || 15); }catch(e){} } }
+function setScreen(name){
+  ['login','operator','client'].forEach(n => el('screen-' + n).classList.toggle('active', n === name));
+  window.scrollTo(0,0);
+}
+function download(filename, content, type){
+  const blob = new Blob([content], {type: type + ';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 150);
+}
+
+/* ---------------- Модальное окно ---------------- */
+let modalSaveHandler = null, modalAfterHandler = null;
+function openModal(title, bodyHTML, onSave, after){
+  el('modalTitle').textContent = title;
+  el('modalBody').innerHTML = bodyHTML;
+  el('modal').classList.remove('hidden');
+  modalSaveHandler = onSave;
+  modalAfterHandler = after || null;
+  el('modalSave').textContent = onSave ? 'Сохранить' : 'Закрыть';
+}
+function closeModal(){
+  el('modal').classList.add('hidden');
+  modalSaveHandler = null;
+  modalAfterHandler = null;
+}
+el('modalCancel').onclick = closeModal;
+el('modalSave').onclick = () => {
+  if(modalSaveHandler){
+    if(modalSaveHandler() === false) return;
+  }
+  closeModal();
+  if(modalAfterHandler) modalAfterHandler();
+};
+el('modal').addEventListener('click', e => { if(e.target === el('modal')) closeModal(); });
+
+/* =====================================================================
+   СОСТОЯНИЕ
+   ===================================================================== */
+const state = {
+  role: null,
+  tab: 'dashboard',
+  period: 'week',
+  metric: 'count',
+  evFilters: {period:'week', station:'all', category:'all'},
+  operatorShift: null,
+  captcha: {a:0, b:0}
+};
+const op = {
+  shift: null, step: 1, category: null, reason: null, station: null,
+  offline: false, lastEvent: null
+};
+
+/* =====================================================================
+   ЛОГИН
+   ===================================================================== */
+el('roleClient').onclick = () => {
+  el('roleClient').classList.add('sel');
+  el('roleOperator').classList.remove('sel');
+  el('clientLoginForm').classList.remove('hidden');
+  el('operatorLoginForm').classList.add('hidden');
+  el('clientError').textContent = '';
+};
+el('roleOperator').onclick = () => {
+  el('roleOperator').classList.add('sel');
+  el('roleClient').classList.remove('sel');
+  el('operatorLoginForm').classList.remove('hidden');
+  el('clientLoginForm').classList.add('hidden');
+  el('shiftPicker').classList.remove('hidden');
+  el('pinPad').classList.add('hidden');
+};
+
+el('clientLoginBtn').onclick = doClientLogin;
+el('clientPass').addEventListener('keydown', e => { if(e.key === 'Enter') doClientLogin(); });
+el('clientLogin').addEventListener('keydown', e => { if(e.key === 'Enter') doClientLogin(); });
+
+/* --- КЛИЕНТ: вход → интерфейс крупных кнопок --- */
+function doClientLogin(){
+  const l = el('clientLogin').value.trim();
+  const p = el('clientPass').value;
+  if(l === 'client' && p === '1234'){
+    state.role = 'client';
+    op.shift = getCurrentShift();
+    op.step = 1; op.category = null; op.reason = null; op.station = null;
+    op.offline = false;
+    setScreen('operator');   // big buttons
+    renderOperator();
+    updateSyncBadge();
+  } else {
+    el('clientError').textContent = 'Неверный логин или пароль';
+  }
+}
+
+/* --- ОПЕРАТОР: смена + PIN → дашборд --- */
+let pinBuffer = '', pinShift = null;
+$$('.shift-card').forEach(btn => {
+  btn.onclick = () => {
+    const db = loadDB();
+    pinShift = db.shifts.find(s => s.id === btn.dataset.shift);
+    pinBuffer = '';
+    el('shiftPicker').classList.add('hidden');
+    el('pinPad').classList.remove('hidden');
+    el('pinShiftName').textContent = pinShift.name;
+    el('pinError').textContent = '';
+    updatePinDots();
+  };
+});
+el('pinBack').onclick = () => {
+  el('pinPad').classList.add('hidden');
+  el('shiftPicker').classList.remove('hidden');
+  pinBuffer = ''; pinShift = null;
+};
+$$('.keypad button').forEach(btn => {
+  btn.onclick = () => {
+    const k = btn.dataset.key;
+    vibrate(10);
+    if(k === 'del'){ pinBuffer = pinBuffer.slice(0,-1); updatePinDots(); return; }
+    if(k === 'ok'){ submitPin(); return; }
+    if(pinBuffer.length < 4) pinBuffer += k;
+    updatePinDots();
+    if(pinBuffer.length === 4) setTimeout(submitPin, 180);
+  };
+});
+function updatePinDots(){
+  let html = '';
+  for(let i=0;i<4;i++) html += '<span class="pin-dot' + (i < pinBuffer.length ? ' on' : '') + '"></span>';
+  el('pinDots').innerHTML = html;
+}
+function submitPin(){
+  if(pinBuffer.length !== 4 || !pinShift) return;
+  const db = loadDB();
+  const shift = db.shifts.find(s => s.id === pinShift.id && s.pin === pinBuffer);
+  if(shift){
+    state.role = 'operator';
+    state.operatorShift = shift;
+    state.tab = 'dashboard';
+    setScreen('client');     // dashboard
+    renderClient();
+    if(navigator.onLine){
+      const n = flushPending();
+      if(n) toast('Синхронизировано офлайн-записей: ' + n);
+    }
+  } else {
+    el('pinError').textContent = 'Неверный PIN-код';
+    el('pinPad').classList.add('shake');
+    setTimeout(() => el('pinPad').classList.remove('shake'), 350);
+    pinBuffer = '';
+    updatePinDots();
+  }
+}
+
+el('opLogout').onclick = () => {
+  op.shift = null;
+  state.role = null;
+  el('opMain').innerHTML = '';
+  el('opFooter').classList.add('hidden');
+  setScreen('login');
+  el('operatorLoginForm').classList.add('hidden');
+  el('roleOperator').classList.remove('sel');
+};
+el('clLogout').onclick = () => {
+  state.role = null;
+  state.operatorShift = null;
+  setScreen('login');
+  el('clientLoginForm').classList.add('hidden');
+  el('roleClient').classList.remove('sel');
+};
+
+/* =====================================================================
+   КЛИЕНТ — интерфейс крупных кнопок (3 шага)
+   ===================================================================== */
+function updateSyncBadge(){
+  const db = loadDB();
+  const pend = (db.pending || []).length;
+  const offline = op.offline || !navigator.onLine;
+  const badge = el('opSync');
+  if(!badge) return;
+  if(offline){
+    badge.className = 'op-status off';
+    badge.textContent = 'Офлайн' + (pend ? ' · ' + pend + ' в очереди' : '');
+  } else {
+    badge.className = 'op-status';
+    badge.textContent = 'Онлайн' + (pend ? ' · ' + pend + ' к отправке' : '');
+  }
+}
+el('opOfflineToggle').onclick = () => {
+  op.offline = !op.offline;
+  if(!op.offline){
+    const n = flushPending();
+    if(n) toast('Отправлено на сервер: ' + n);
+  } else {
+    toast('Демо-режим офлайн включён');
+  }
+  updateSyncBadge();
+};
+window.addEventListener('online', () => {
+  const n = flushPending();
+  updateSyncBadge();
+  if(n) toast('Связь восстановлена. Отправлено записей: ' + n);
+});
+window.addEventListener('offline', updateSyncBadge);
+
+el('opHelp').onclick = () => {
+  openModal('Контакты поддержки',
+    '<div class="contact-row">📞 <a href="tel:+79289887307">+7 (928) 988-73-07</a></div>' +
+    '<div class="contact-row">✉️ <a href="mailto:nikitakurdubov@gmail.com">nikitakurdubov@gmail.com</a></div>' +
+    '<div class="hint">Опишите проблему — ответим в рабочее время.</div>',
+    null, null);
+};
+
+function renderOperator(){
+  const db = loadDB();
+  el('opShiftName').textContent = op.shift ? ('Клиент · ' + op.shift.name) : 'Клиент';
+  updateSyncBadge();
+  const main = el('opMain');
+  const footer = el('opFooter');
+
+  if(op.step === 1){
+    footer.classList.add('hidden');
+    main.innerHTML =
+      '<div class="op-title">Что произошло?</div>' +
+      '<div class="op-step">' +
+        db.categories.map(c =>
+          '<button class="op-cat" data-act="cat" data-id="' + c.id + '">' +
+            '<span class="op-icon">' + c.emoji + '</span><span>' + esc(c.name) + '</span>' +
+          '</button>'
+        ).join('') +
+      '</div>';
+  }
+  else if(op.step === 2){
+    const cat = db.categories.find(c => c.id === op.category);
+    const reasons = db.reasons.filter(r => r.categoryId === op.category);
+    footer.classList.add('hidden');
+    main.innerHTML =
+      '<div class="op-topbar"><button class="op-back" data-act="back">‹ Назад</button>' +
+      '<div class="op-title">' + esc(cat ? cat.name : '') + '</div></div>' +
+      '<div class="op-sub">Выберите причину</div>' +
+      '<div class="op-grid">' +
+        (reasons.length ? reasons.map(r =>
+          '<button class="op-reason" data-act="reason" data-id="' + r.id + '">' +
+            '<span class="op-icon">' + (r.emoji || '•') + '</span>' +
+            '<span class="op-reason-name">' + esc(r.name) + '</span>' +
+            '<span class="op-reason-cost">~' + fmtNum(r.cost) + ' ₽</span>' +
+          '</button>'
+        ).join('') : '<div class="empty" style="color:#8A94A6">Нет причин в этой категории</div>') +
+      '</div>';
+  }
+  else if(op.step === 3){
+    const r = db.reasons.find(x => x.id === op.reason);
+    main.innerHTML =
+      '<div class="op-topbar"><button class="op-back" data-act="back">‹ Назад</button>' +
+      '<div class="op-title">Где произошло?</div></div>' +
+      '<div class="op-sub">' + esc(r ? r.name : '') + ' · ' + esc(op.shift ? op.shift.name : '') + '</div>' +
+      '<div class="op-grid stations">' +
+        db.stations.map(s =>
+          '<button class="op-station ' + (op.station === s.id ? 'sel' : '') + '" data-act="station" data-id="' + s.id + '">' + esc(s.name) + '</button>'
+        ).join('') +
+        '<button class="op-station ' + (op.station === 'none' ? 'sel' : '') + '" data-act="station" data-id="none">Без станции</button>' +
+      '</div>';
+    footer.classList.remove('hidden');
+  }
+}
+
+el('opMain').addEventListener('click', e => {
+  const btn = e.target.closest('[data-act]');
+  if(!btn) return;
+  const act = btn.dataset.act, id = btn.dataset.id;
+  vibrate(12);
+  if(act === 'cat'){ op.category = id; op.step = 2; renderOperator(); }
+  else if(act === 'reason'){ op.reason = id; op.step = 3; renderOperator(); }
+  else if(act === 'station'){ op.station = id; renderOperator(); }
+  else if(act === 'back'){ op.step = Math.max(1, op.step - 1); renderOperator(); }
+});
+
+el('opDone').onclick = opSave;
+
+function opSave(){
+  if(!op.category || !op.reason) return;
+  const db = loadDB();
+  const cat = db.categories.find(c => c.id === op.category);
+  const reason = db.reasons.find(r => r.id === op.reason);
+  if(!cat || !reason){ toast('Ошибка: причина не найдена'); return; }
+  const station = (op.station && op.station !== 'none') ? db.stations.find(s => s.id === op.station) : null;
+
+  const ev = {
+    id: uuid(),
+    ts: Date.now(),
+    categoryId: cat.id, categoryName: cat.name,
+    reasonId: reason.id, reasonName: reason.name, group: reason.group || '',
+    cost: reason.cost || 0,
+    stationId: station ? station.id : '',
+    stationName: station ? station.name : 'Без станции',
+    shiftId: op.shift.id, shiftName: op.shift.name
+  };
+
+  const offline = op.offline || !navigator.onLine;
+  let newAlerts = [];
+
+  if(offline){
+    db.pending = db.pending || [];
+    db.pending.push(ev);
+    saveDB(db);
+  } else {
+    db.events.push(ev);
+    newAlerts = checkRules(db, ev);
+    saveDB(db);
+  }
+
+  op.lastEvent = ev;
+  updateSyncBadge();
+  showSuccess(ev, offline);
+  if(newAlerts.length){
+    const ch = CHANNELS[newAlerts[0].channel] ? CHANNELS[newAlerts[0].channel].label : newAlerts[0].channel;
+    setTimeout(() => toast('Алерт: «' + newAlerts[0].ruleName + '» → ' + ch), 600);
+  }
+}
+
+function showSuccess(ev, offline){
+  const wrap = document.createElement('div');
+  wrap.className = 'op-success';
+  wrap.innerHTML =
+    '<div class="op-check">✓</div>' +
+    '<div class="op-success-title">Зафиксировано</div>' +
+    '<div class="op-success-sub">' + esc(ev.categoryName) + ' · ' + esc(ev.reasonName) + ' · ' + esc(ev.stationName) +
+      (offline ? '<br><b>Сохранено офлайн — отправится при появлении сети</b>' : '') + '</div>' +
+    '<button class="op-undo" id="opUndo">Отменить</button>';
+  document.body.appendChild(wrap);
+
+  const timer = setTimeout(() => { wrap.remove(); opReset(); }, 2600);
+
+  el('opUndo').onclick = () => {
+    clearTimeout(timer);
+    undoEvent(ev);
+    wrap.remove();
+    opReset();
+    toast('Запись отменена');
+  };
+}
+
+function undoEvent(ev){
+  const db = loadDB();
+  db.events = db.events.filter(e => e.id !== ev.id);
+  db.pending = (db.pending || []).filter(e => e.id !== ev.id);
+  saveDB(db);
+  updateSyncBadge();
+}
+
+function opReset(){
+  op.step = 1; op.category = null; op.reason = null; op.station = null;
+  renderOperator();
+}
+
+/* =====================================================================
+   ОПЕРАТОР — дашборд и аналитика
+   ===================================================================== */
+$$('.cl-tab').forEach(btn => {
+  btn.onclick = () => {
+    state.tab = btn.dataset.tab;
+    renderClient();
+  };
+});
+
+function renderClient(){
+  if(state.role !== 'operator') return;
+  $$('.cl-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === state.tab));
+  const lbl = el('clUserLabel');
+  if(lbl) lbl.textContent = 'Оператор' + (state.operatorShift ? ' · ' + state.operatorShift.name : '');
+  updateAlertBadge();
+  if(state.tab === 'dashboard') renderDashboard();
+  else if(state.tab === 'events') renderEvents();
+  else if(state.tab === 'alerts') renderAlerts();
+  else if(state.tab === 'settings') renderSettings();
+  else renderSupport();
+}
+
+function updateAlertBadge(){
+  const db = loadDB();
+  const unread = db.alerts.filter(a => !a.read).length;
+  const tab = document.querySelector('.cl-tab[data-tab="alerts"]');
+  if(tab) tab.innerHTML = 'Уведомления' + (unread ? '<span class="badge">' + unread + '</span>' : '');
+}
+
+/* ---------------- ДАШБОРД ---------------- */
+const PERIOD_LABELS = {today:'Сегодня', week:'7 дней', month:'30 дней', all:'Всё время'};
+
+function checkDigest(){
+  const db = loadDB();
+  const d = db.settings.digest;
+  if(!d || !d.enabled) return;
+  const now = new Date();
+  const parts = String(d.time).split(':');
+  const hh = Number(parts[0]) || 0, mm = Number(parts[1]) || 0;
+  const todayKey = now.getFullYear() + '-' + (now.getMonth()+1) + '-' + now.getDate();
+  if(d.lastSent === todayKey) return;
+  const target = new Date(); target.setHours(hh, mm, 0, 0);
+  if(now < target) return;
+
+  const start = new Date(); start.setHours(0,0,0,0);
+  const evs = db.events.filter(e => e.ts >= start.getTime());
+  const {arr} = aggregate(evs, 'count');
+  const top = arr.slice(0,3).map((x,i) => (i+1) + '. ' + x.name + ' — ' + x.count).join('; ');
+  db.alerts.unshift({
+    id: uuid(), ts: Date.now(), ruleId: 'digest', ruleName: 'Ежедневная сводка',
+    channel: d.channel,
+    message: 'Сводка за сегодня: событий ' + evs.length + '. Топ причин: ' + (top || 'нет данных') + '.',
+    read: false, kind: 'digest'
+  });
+  db.settings.digest.lastSent = todayKey;
+  saveDB(db);
+}
+
+function renderDashboard(){
+  const db = loadDB();
+  checkDigest();
+
+  const range = periodRange(state.period);
+  const evs = db.events.filter(e => e.ts >= range[0] && e.ts <= range[1]);
+  const agg = aggregate(evs, state.metric);
+  const arr = agg.arr, total = agg.total;
+
+  const totalCost = evs.reduce((s,e) => s + (e.cost || 0), 0);
+  const top5 = arr.slice(0,5);
+  const top5Val = top5.reduce((s,x) => s + x.value, 0);
+  const top5Share = total ? (top5Val / total * 100) : 0;
+
+  const days = state.period === 'today' ? 1
+             : state.period === 'week' ? 7
+             : state.period === 'month' ? 30
+             : Math.max(1, Math.ceil((Date.now() - range[0]) / 86400000));
+  const perDay = evs.length / days;
+
+  const top1 = arr[0];
+
+  const chartItems = top5.map(x => ({label:x.name, value:x.value}));
+  if(arr.length > 5){
+    const rest = arr.slice(5);
+    const restVal = rest.reduce((s,x) => s + x.value, 0);
+    chartItems.push({label:'Прочие (' + rest.length + ')', value:restVal, isOther:true});
+  }
+
+  el('clMain').innerHTML =
+    '<div class="page-head">' +
+      '<div><h2>Дашборд потерь</h2>' +
+      '<div class="muted">Автоматический анализ корневых причин · ' + PERIOD_LABELS[state.period] + '</div></div>' +
+      '<div class="head-controls">' +
+        '<div class="seg" id="periodSeg">' +
+          Object.keys(PERIOD_LABELS).map(k =>
+            '<button data-period="' + k + '" class="' + (state.period === k ? 'active' : '') + '">' + PERIOD_LABELS[k] + '</button>'
+          ).join('') +
+        '</div>' +
+        '<div class="seg" id="metricSeg">' +
+          '<button data-metric="count" class="' + (state.metric === 'count' ? 'active' : '') + '">По количеству</button>' +
+          '<button data-metric="cost" class="' + (state.metric === 'cost' ? 'active' : '') + '">По сумме</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="kpi-grid">' +
+      '<div class="kpi"><div class="kpi-label">Потери за период</div>' +
+        '<div class="kpi-value">' + fmtMoney(totalCost) + '</div>' +
+        '<div class="kpi-sub">' + evs.length + ' зафиксированных событий</div></div>' +
+      '<div class="kpi"><div class="kpi-label">Топ‑1 причина</div>' +
+        '<div class="kpi-value small">' + (top1 ? esc(top1.name) : '—') + '</div>' +
+        '<div class="kpi-sub">' + (top1 ? (fmtNum(top1.value) + ' · ' + top1.pct.toFixed(1) + '% всех потерь') : 'нет данных') + '</div></div>' +
+      '<div class="kpi"><div class="kpi-label">Доля Топ‑5</div>' +
+        '<div class="kpi-value">' + top5Share.toFixed(0) + '%</div>' +
+        '<div class="kpi-sub">из ' + arr.length + ' причин за период</div></div>' +
+      '<div class="kpi"><div class="kpi-label">В среднем в день</div>' +
+        '<div class="kpi-value">' + perDay.toFixed(1) + '</div>' +
+        '<div class="kpi-sub">событий потерь</div></div>' +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="card-head"><h3>Диаграмма Парето — Топ‑5 причин</h3>' +
+        '<span class="muted">' + (state.metric === 'cost' ? 'по сумме потерь, ₽' : 'по количеству событий') + '</span></div>' +
+      '<div id="paretoChart"></div>' +
+      '<div class="legend">' +
+        '<span><i style="background:#0056D2"></i>Топ‑5 причин</span>' +
+        '<span><i style="background:#B9C2CF"></i>Прочие причины</span>' +
+        '<span><i style="background:#D32F2F"></i>Накопленная доля, %</span>' +
+        '<span><i style="background:#FFC107"></i>Уровень 80%</span>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="card-head"><h3>Рейтинг причин</h3>' +
+        '<span class="muted">' + (arr.length ? 'Топ‑5 из ' + arr.length + ' причин дают ' + top5Share.toFixed(1) + '% потерь' : '') + '</span></div>' +
+      (arr.length ?
+        '<table class="tbl"><thead><tr>' +
+          '<th>#</th><th>Причина</th><th>Группа</th>' +
+          '<th class="num">Кол-во</th><th class="num">Сумма</th>' +
+          '<th class="num">Доля</th><th class="num">Накопл.</th>' +
+        '</tr></thead><tbody>' +
+        arr.slice(0,10).map((x,i) =>
+          '<tr>' +
+            '<td><b>' + (i+1) + '</b></td>' +
+            '<td>' + esc(x.name) + (i < 5 ? ' <span class="tag blue">Топ</span>' : '') + '</td>' +
+            '<td><span class="tag">' + esc(x.group) + '</span></td>' +
+            '<td class="num">' + fmtNum(x.count) + '</td>' +
+            '<td class="num">' + fmtMoney(x.cost) + '</td>' +
+            '<td class="num">' + x.pct.toFixed(1) + '%</td>' +
+            '<td class="num">' + x.cumPct.toFixed(1) + '%</td>' +
+          '</tr>'
+        ).join('') +
+        '</tbody></table>'
+      : '<div class="empty">Пока нет данных за выбранный период</div>') +
+    '</div>' +
+
+    '<div class="insight">' +
+      (arr.length ?
+        '💡 <b>Вывод:</b> ' + Math.min(5, arr.length) + ' причин из ' + arr.length + ' генерируют <b>' + top5Share.toFixed(1) + '%</b> всех потерь. ' +
+        'Устранение «' + esc(top1.name) + '» даст максимальный эффект — это <b>' + fmtMoney(top1.cost) + '</b> за период.'
+      : '💡 Зафиксируйте первые потери через интерфейс клиента — система автоматически построит диаграмму Парето.') +
+    '</div>' +
+
+    '<div class="row" style="margin-top:16px">' +
+      '<button class="btn primary" id="btnExportDash">Экспорт отчёта (CSV/Excel)</button>' +
+      '<button class="btn" id="btnPrintDash">Печать / PDF</button>' +
+    '</div>';
+
+  renderParetoChart(chartItems, el('paretoChart'));
+
+  $$('#periodSeg button').forEach(b => {
+    b.onclick = () => { state.period = b.dataset.period; renderDashboard(); };
+  });
+  $$('#metricSeg button').forEach(b => {
+    b.onclick = () => { state.metric = b.dataset.metric; renderDashboard(); };
+  });
+  el('btnExportDash').onclick = () => exportCSV(evs, 'pareto_' + state.period + '.csv');
+  el('btnPrintDash').onclick = () => window.print();
+}
+
+/* ---------------- СОБЫТИЯ ---------------- */
+function renderEvents(){
+  const db = loadDB();
+  const f = state.evFilters;
+  const range = periodRange(f.period);
+  let evs = db.events.filter(e => e.ts >= range[0] && e.ts <= range[1]);
+  if(f.station !== 'all') evs = evs.filter(e => e.stationId === f.station);
+  if(f.category !== 'all') evs = evs.filter(e => e.categoryId === f.category);
+  evs = evs.slice().sort((a,b) => b.ts - a.ts);
+
+  const shown = evs.slice(0, 250);
+
+  el('clMain').innerHTML =
+    '<div class="page-head"><div><h2>Лента событий</h2>' +
+      '<div class="muted">Все зафиксированные потери · показано ' + shown.length + ' из ' + evs.length + '</div></div>' +
+      '<div class="head-controls">' +
+        '<button class="btn primary" id="evExport">Экспорт в Excel</button>' +
+      '</div></div>' +
+
+    '<div class="card">' +
+      '<div class="row" style="margin-top:0">' +
+        '<select class="inp" id="evPeriod">' +
+          ['today','week','month','all'].map(p =>
+            '<option value="' + p + '"' + (f.period === p ? ' selected' : '') + '>' + PERIOD_LABELS[p] + '</option>'
+          ).join('') +
+        '</select>' +
+        '<select class="inp" id="evStation"><option value="all">Все станции</option>' +
+          db.stations.map(s => '<option value="' + s.id + '"' + (f.station === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') +
+          '<option value=""' + (f.station === '' ? ' selected' : '') + '>Без станции</option>' +
+        '</select>' +
+        '<select class="inp" id="evCategory"><option value="all">Все категории</option>' +
+          db.categories.map(c => '<option value="' + c.id + '"' + (f.category === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') +
+        '</select>' +
+        '<button class="btn" id="evReset">Сбросить</button>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="card">' +
+      (shown.length ?
+        '<table class="tbl"><thead><tr>' +
+          '<th>Дата и время</th><th>Категория</th><th>Причина</th><th>Группа</th>' +
+          '<th>Станция</th><th>Смена</th><th class="num">Сумма</th><th></th>' +
+        '</tr></thead><tbody>' +
+        shown.map(e =>
+          '<tr>' +
+            '<td>' + fmtDateTime(e.ts) + '</td>' +
+            '<td>' + esc(e.categoryName) + '</td>' +
+            '<td><b>' + esc(e.reasonName) + '</b></td>' +
+            '<td><span class="tag">' + esc(e.group || '—') + '</span></td>' +
+            '<td>' + esc(e.stationName || '—') + '</td>' +
+            '<td>' + esc(e.shiftName || '—') + '</td>' +
+            '<td class="num">' + fmtMoney(e.cost) + '</td>' +
+            '<td class="right"><button class="btn small danger" data-del="' + e.id + '">Удал.</button></td>' +
+          '</tr>'
+        ).join('') +
+        '</tbody></table>'
+      : '<div class="empty">Событий по выбранным фильтрам нет</div>') +
+    '</div>';
+
+  el('evPeriod').onchange = e => { f.period = e.target.value; renderEvents(); };
+  el('evStation').onchange = e => { f.station = e.target.value; renderEvents(); };
+  el('evCategory').onchange = e => { f.category = e.target.value; renderEvents(); };
+  el('evReset').onclick = () => { state.evFilters = {period:'week', station:'all', category:'all'}; renderEvents(); };
+  el('evExport').onclick = () => exportCSV(evs, 'pareto_events.csv');
+
+  $$('#clMain [data-del]').forEach(btn => {
+    btn.onclick = () => {
+      if(!confirm('Удалить это событие из базы? Действие необратимо.')) return;
+      const db2 = loadDB();
+      db2.events = db2.events.filter(x => x.id !== btn.dataset.del);
+      saveDB(db2);
+      renderEvents();
+      toast('Событие удалено');
+    };
+  });
+}
+
+function exportCSV(events, filename){
+  if(!events.length){ toast('Нет данных для экспорта'); return; }
+  const rows = [['Дата','Время','Категория','Причина','Группа','Станция','Смена','Сумма, ₽']];
+  events.slice().sort((a,b) => a.ts - b.ts).forEach(e => {
+    const d = new Date(e.ts);
+    rows.push([
+      d.toLocaleDateString('ru-RU'),
+      d.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}),
+      e.categoryName, e.reasonName, e.group || '', e.stationName || '',
+      e.shiftName || '', e.cost || 0
+    ]);
+  });
+  const csv = '\uFEFF' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(';')).join('\r\n');
+  download(filename, csv, 'text/csv');
+  toast('Файл сформирован: ' + filename);
+}
+
+/* ---------------- УВЕДОМЛЕНИЯ ---------------- */
+function renderAlerts(){
+  const db = loadDB();
+  const d = db.settings.digest;
+
+  const catOptions = '<option value="any">Любая категория</option>' +
+    db.categories.map(c => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('');
+  const reasonOptions = '<option value="any">Любая причина</option>' +
+    db.reasons.map(r => '<option value="' + r.id + '">' + esc(r.name) + '</option>').join('');
+  const channelOptions = Object.keys(CHANNELS).map(k => '<option value="' + k + '">' + CHANNELS[k].label + '</option>').join('');
+
+  el('clMain').innerHTML =
+    '<div class="page-head"><div><h2>Уведомления и алертинг</h2>' +
+      '<div class="muted">Правила срабатывают при фиксации новых потерь клиентом</div></div></div>' +
+
+    '<div class="card">' +
+      '<div class="card-head"><h3>Ежедневная сводка</h3></div>' +
+      '<div class="row" style="margin-top:0">' +
+        '<label class="row" style="margin:0;gap:8px"><input type="checkbox" id="dgEnabled"' + (d.enabled ? ' checked' : '') + '> Включена</label>' +
+        '<input class="inp" type="time" id="dgTime" value="' + esc(d.time) + '" style="max-width:150px">' +
+        '<select class="inp" id="dgChannel" style="max-width:180px">' +
+          Object.keys(CHANNELS).map(k => '<option value="' + k + '"' + (d.channel === k ? ' selected' : '') + '>' + CHANNELS[k].label + '</option>').join('') +
+        '</select>' +
+        '<button class="btn primary" id="dgSave">Сохранить</button>' +
+      '</div>' +
+      '<div class="hint" style="margin-top:10px">Сводка формируется автоматически при входе в кабинет после указанного времени. Отправка фиксируется в журнале ниже. Для реальной доставки в мессенджеры требуется подключение бота (токен настраивается на сервере).</div>' +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="card-head"><h3>Новое правило</h3></div>' +
+      '<div class="row" style="margin-top:0">' +
+        '<input class="inp" id="ruleName" placeholder="Название правила" style="min-width:220px">' +
+      '</div>' +
+      '<div class="row">' +
+        '<select class="inp" id="ruleCat">' + catOptions + '</select>' +
+        '<select class="inp" id="ruleReason">' + reasonOptions + '</select>' +
+      '</div>' +
+      '<div class="row">' +
+        '<input class="inp" id="ruleThreshold" type="number" min="1" value="3" style="max-width:130px" placeholder="Порог">' +
+        '<input class="inp" id="ruleWindow" type="number" min="1" value="60" style="max-width:170px" placeholder="Окно, мин">' +
+        '<select class="inp" id="ruleChannel" style="max-width:170px">' + channelOptions + '</select>' +
+        '<button class="btn primary" id="ruleAdd">Добавить правило</button>' +
+      '</div>' +
+      '<div class="hint" style="margin-top:10px">Например: «если за 60 минут зафиксировано 3 возврата из зала — отправить уведомление в Telegram».</div>' +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="card-head"><h3>Правила алертов</h3></div>' +
+      (db.rules.length ?
+        '<table class="tbl"><thead><tr><th>Правило</th><th>Условие</th><th>Канал</th><th>Вкл.</th><th></th></tr></thead><tbody>' +
+        db.rules.map(r => {
+          const cat = r.categoryId === 'any' ? 'любая категория' : (db.categories.find(c => c.id === r.categoryId) || {}).name || r.categoryId;
+          const rea = r.reasonId === 'any' ? 'любая причина' : (db.reasons.find(x => x.id === r.reasonId) || {}).name || r.reasonId;
+          const ch = CHANNELS[r.channel] || {label:r.channel, cls:''};
+          return '<tr>' +
+            '<td><b>' + esc(r.name) + '</b></td>' +
+            '<td>' + esc(cat) + ' · ' + esc(rea) + ' · ' + r.threshold + ' за ' + r.windowMin + ' мин</td>' +
+            '<td><span class="' + ch.cls + '">' + esc(ch.label) + '</span></td>' +
+            '<td><input type="checkbox" data-toggle="' + r.id + '"' + (r.enabled ? ' checked' : '') + '></td>' +
+            '<td class="right"><button class="btn small" data-test="' + r.id + '">Тест</button> ' +
+            '<button class="btn small danger" data-delrule="' + r.id + '">Удал.</button></td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody></table>'
+      : '<div class="empty">Правил пока нет</div>') +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="card-head"><h3>Журнал уведомлений</h3>' +
+        '<button class="btn small" id="alertsClear">Очистить журнал</button></div>' +
+      (db.alerts.length ?
+        db.alerts.slice(0,60).map(a => {
+          const ch = CHANNELS[a.channel] || {label:a.channel, cls:''};
+          return '<div class="alert-item">' +
+            '<div class="alert-time">' + fmtDateTime(a.ts) + '</div>' +
+            '<div style="flex:1"><div><b>' + esc(a.ruleName) + '</b> <span class="' + ch.cls + '">' + esc(ch.label) + '</span></div>' +
+            '<div class="muted" style="margin-top:2px">' + esc(a.message) + '</div></div>' +
+            '<div><span class="tag green">доставлено</span></div>' +
+          '</div>';
+        }).join('')
+      : '<div class="empty">Журнал пуст. Зафиксируйте потери через клиента — при срабатывании правил записи появятся здесь.</div>') +
+    '</div>';
+
+  const dbMark = loadDB();
+  if(dbMark.alerts.some(a => !a.read)){
+    dbMark.alerts.forEach(a => { a.read = true; });
+    saveDB(dbMark);
+    updateAlertBadge();
+  }
+
+  el('dgSave').onclick = () => {
+    const db2 = loadDB();
+    db2.settings.digest = {
+      enabled: el('dgEnabled').checked,
+      time: el('dgTime').value || '11:00',
+      channel: el('dgChannel').value,
+      lastSent: db2.settings.digest.lastSent
+    };
+    saveDB(db2);
+    toast('Настройки сводки сохранены');
+  };
+
+  el('ruleAdd').onclick = () => {
+    const name = el('ruleName').value.trim();
+    if(!name){ toast('Укажите название правила'); return; }
+    const db2 = loadDB();
+    db2.rules.push({
+      id: uuid(),
+      name: name,
+      categoryId: el('ruleCat').value,
+      reasonId: el('ruleReason').value,
+      threshold: Math.max(1, Number(el('ruleThreshold').value) || 1),
+      windowMin: Math.max(1, Number(el('ruleWindow').value) || 60),
+      channel: el('ruleChannel').value,
+      enabled: true
+    });
+    saveDB(db2);
+    renderAlerts();
+    toast('Правило добавлено');
+  };
+
+  $$('#clMain [data-toggle]').forEach(cb => {
+    cb.onchange = () => {
+      const db2 = loadDB();
+      const r = db2.rules.find(x => x.id === cb.dataset.toggle);
+      if(r){ r.enabled = cb.checked; saveDB(db2); }
+    };
+  });
+  $$('#clMain [data-delrule]').forEach(btn => {
+    btn.onclick = () => {
+      if(!confirm('Удалить правило?')) return;
+      const db2 = loadDB();
+      db2.rules = db2.rules.filter(x => x.id !== btn.dataset.delrule);
+      saveDB(db2);
+      renderAlerts();
+    };
+  });
+  $$('#clMain [data-test]').forEach(btn => {
+    btn.onclick = () => {
+      const db2 = loadDB();
+      const r = db2.rules.find(x => x.id === btn.dataset.test);
+      if(!r) return;
+      const ch = CHANNELS[r.channel] || {label:r.channel};
+      db2.alerts.unshift({
+        id: uuid(), ts: Date.now(), ruleId: r.id, ruleName: r.name, channel: r.channel,
+        message: 'Тестовое уведомление по правилу «' + r.name + '». Канал: ' + ch.label + '.',
+        read: true
+      });
+      saveDB(db2);
+      renderAlerts();
+      toast('Тестовый алерт сформирован → ' + ch.label);
+    };
+  });
+  el('alertsClear').onclick = () => {
+    if(!confirm('Очистить журнал уведомлений?')) return;
+    const db2 = loadDB();
+    db2.alerts = [];
+    saveDB(db2);
+    renderAlerts();
+  };
+}
+
+/* ---------------- НАСТРОЙКИ ---------------- */
+function renderSettings(){
+  const db = loadDB();
+
+  el('clMain').innerHTML =
+    '<div class="page-head"><div><h2>Настройки и справочники</h2>' +
+      '<div class="muted">Причины потерь, станции, пользователи, данные</div></div></div>' +
+
+    '<div class="card">' +
+      '<div class="card-head"><h3>Причины потерь</h3>' +
+        '<button class="btn primary" id="addReason">+ Добавить причину</button></div>' +
+      renderReasonList(db) +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="card-head"><h3>Станции и зоны кухни</h3></div>' +
+      '<div class="chips">' +
+        db.stations.map(s => '<span class="chip">' + esc(s.name) + '<button data-delstation="' + s.id + '">✕</button></span>').join('') +
+      '</div>' +
+      '<div class="row"><input class="inp" id="newStation" placeholder="Название станции"><button class="btn primary" id="addStation">Добавить</button></div>' +
+    '</div>' +
+
+    '<div class="card">' +
+      '<div class="card-head"><h3>Пользователи и роли</h3></div>' +
+      '<div class="muted" style="margin-bottom:12px">Клиент: <b>client / 1234</b> (фиксация потерь). Операторы входят по PIN‑коду своей смены (аналитика).</div>' +
+      db.shifts.map(s =>
+        '<div class="row"><div class="shift-name">' + esc(s.name) + '</div>' +
+        '<input class="inp pin-input" id="pin_' + s.id + '" value="' + esc(s.pin) + '" maxlength="4" inputmode="numeric">' +
+        '<button class="btn" data-savepin="' + s.id + '">Сохранить PIN</button></div>'
+      ).join('') +
+    '</div>' +
+
+    '<div class="card danger-card">' +
+      '<div class="card-head"><h3>Данные</h3></div>' +
+      '<div class="row" style="margin-top:0">' +
+        '<button class="btn" id="reseed">Пересоздать демо‑данные</button>' +
+        '<button class="btn danger" id="clearEvents">Очистить все события</button>' +
+      '</div>' +
+      '<div class="hint" style="margin-top:10px">Все данные хранятся локально в браузере (localStorage) и доступны обеим ролям.</div>' +
+    '</div>';
+
+  el('addReason').onclick = () => reasonModal(null);
+
+  $$('#clMain [data-editreason]').forEach(b => {
+    b.onclick = () => {
+      const db2 = loadDB();
+      const r = db2.reasons.find(x => x.id === b.dataset.editreason);
+      if(r) reasonModal(r);
+    };
+  });
+  $$('#clMain [data-delreason]').forEach(b => {
+    b.onclick = () => {
+      if(!confirm('Удалить причину из справочника? Уже зафиксированные события сохранятся.')) return;
+      const db2 = loadDB();
+      db2.reasons = db2.reasons.filter(x => x.id !== b.dataset.delreason);
+      saveDB(db2);
+      renderSettings();
+    };
+  });
+
+  el('addStation').onclick = () => {
+    const name = el('newStation').value.trim();
+    if(!name){ toast('Введите название станции'); return; }
+    const db2 = loadDB();
+    db2.stations.push({id: uuid(), name: name});
+    saveDB(db2);
+    renderSettings();
+    toast('Станция добавлена');
+  };
+  $$('#clMain [data-delstation]').forEach(b => {
+    b.onclick = () => {
+      const db2 = loadDB();
+      if(db2.stations.length <= 1){ toast('Должна остаться хотя бы одна станция'); return; }
+      db2.stations = db2.stations.filter(x => x.id !== b.dataset.delstation);
+      saveDB(db2);
+      renderSettings();
+    };
+  });
+
+  $$('#clMain [data-savepin]').forEach(b => {
+    b.onclick = () => {
+      const id = b.dataset.savepin;
+      const val = el('pin_' + id).value.trim();
+      if(!/^\d{4}$/.test(val)){ toast('PIN должен состоять из 4 цифр'); return; }
+      const db2 = loadDB();
+      const sh = db2.shifts.find(x => x.id === id);
+      if(sh){ sh.pin = val; saveDB(db2); toast('PIN обновлён'); }
+    };
+  });
+
+  el('reseed').onclick = () => {
+    if(!confirm('Пересоздать демо‑данные? Текущие события будут удалены.')) return;
+    localStorage.removeItem(DB_KEY);
+    loadDB();
+    ensureSeed();
+    renderSettings();
+    toast('Демо‑данные пересозданы');
+  };
+  el('clearEvents').onclick = () => {
+    if(!confirm('Удалить ВСЕ зафиксированные события? Справочники останутся.')) return;
+    const db2 = loadDB();
+    db2.events = [];
+    db2.pending = [];
+    saveDB(db2);
+    toast('Все события удалены');
+  };
+}
+
+function renderReasonList(db){
+  return db.categories.map(c => {
+    const rs = db.reasons.filter(r => r.categoryId === c.id);
+    return '<div class="reason-group">' +
+      '<div class="reason-group-title">' + c.emoji + ' ' + esc(c.name) + '</div>' +
+      '<table class="tbl"><thead><tr><th>Причина</th><th>Группа</th><th class="num">Ср. стоимость</th><th></th></tr></thead><tbody>' +
+      (rs.length ? rs.map(r =>
+        '<tr>' +
+          '<td>' + (r.emoji || '') + ' ' + esc(r.name) + '</td>' +
+          '<td><span class="tag">' + esc(r.group || '—') + '</span></td>' +
+          '<td class="num">' + fmtMoney(r.cost) + '</td>' +
+          '<td class="right"><button class="btn small" data-editreason="' + r.id + '">Изм.</button> ' +
+          '<button class="btn small danger" data-delreason="' + r.id + '">Удал.</button></td>' +
+        '</tr>'
+      ).join('') : '<tr><td colspan="4" class="muted">Нет причин в этой категории</td></tr>') +
+      '</tbody></table></div>';
+  }).join('');
+}
+
+function reasonModal(reason){
+  const db = loadDB();
+  const isEdit = !!reason;
+  const r = reason || {name:'', group:'', emoji:'', cost:200, categoryId: db.categories[0].id};
+  openModal(isEdit ? 'Изменить причину' : 'Новая причина потерь',
+    '<label class="field"><span>Название</span><input id="mName" class="inp" value="' + esc(r.name) + '"></label>' +
+    '<label class="field"><span>Категория</span><select id="mCat" class="inp">' +
+      db.categories.map(c => '<option value="' + c.id + '"' + (c.id === r.categoryId ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') +
+    '</select></label>' +
+    '<label class="field"><span>Группа (например, «Брак поставщика»)</span><input id="mGroup" class="inp" value="' + esc(r.group || '') + '"></label>' +
+    '<label class="field"><span>Средняя стоимость потери, ₽</span><input id="mCost" class="inp" type="number" min="0" value="' + (r.cost || 0) + '"></label>' +
+    '<label class="field"><span>Иконка (эмодзи)</span><input id="mEmoji" class="inp" maxlength="2" value="' + esc(r.emoji || '') + '"></label>',
+    () => {
+      const name = el('mName').value.trim();
+      if(!name){ toast('Укажите название причины'); return false; }
+      const db2 = loadDB();
+      const data = {
+        name: name,
+        categoryId: el('mCat').value,
+        group: el('mGroup').value.trim() || 'Прочее',
+        cost: Math.max(0, Number(el('mCost').value) || 0),
+        emoji: el('mEmoji').value.trim() || '•'
+      };
+      if(isEdit){
+        const idx = db2.reasons.findIndex(x => x.id === reason.id);
+        if(idx >= 0) db2.reasons[idx] = Object.assign({}, db2.reasons[idx], data);
+      } else {
+        db2.reasons.push(Object.assign({id: uuid()}, data));
+      }
+      saveDB(db2);
+      return true;
+    },
+    () => { renderSettings(); toast(isEdit ? 'Причина обновлена' : 'Причина добавлена'); }
+  );
+}
+
+/* ---------------- ПОДДЕРЖКА ---------------- */
+function renderSupport(){
+  const db = loadDB();
+  const a = Math.floor(Math.random()*8) + 2;
+  const b = Math.floor(Math.random()*8) + 2;
+  state.captcha = {a: a, b: b};
+
+  const tickets = db.tickets.slice().reverse();
+
+  el('clMain').innerHTML =
+    '<div class="page-head"><div><h2>Поддержка</h2>' +
+      '<div class="muted">Обратная связь, контакты и история обращений</div></div></div>' +
+
+    '<div class="two-col">' +
+      '<div class="card">' +
+        '<div class="card-head"><h3>Обратная связь</h3></div>' +
+        '<label class="field"><span>Категория обращения</span>' +
+          '<select id="fbCat" class="inp">' +
+            '<option>Ошибка в интерфейсе клиента</option>' +
+            '<option>Ошибка в дашборде оператора</option>' +
+            '<option>Предложение по функционалу</option>' +
+            '<option>Вопрос по работе системы</option>' +
+          '</select></label>' +
+        '<label class="field"><span>Email для ответа</span>' +
+          '<input id="fbEmail" class="inp" placeholder="you@example.com"></label>' +
+        '<label class="field"><span>Сообщение</span>' +
+          '<textarea id="fbMsg" class="inp" rows="5" placeholder="Опишите проблему или предложение (минимум 10 символов)"></textarea></label>' +
+        '<label class="field"><span>Проверка от спама: ' + a + ' + ' + b + ' = ?</span>' +
+          '<input id="fbCap" class="inp" inputmode="numeric" placeholder="Ответ"></label>' +
+        '<button class="btn primary" id="fbSend">Отправить обращение</button>' +
+        '<div class="form-msg" id="fbResult"></div>' +
+      '</div>' +
+
+      '<div>' +
+        '<div class="card">' +
+          '<div class="card-head"><h3>Контакты</h3></div>' +
+          '<div class="contact-row">📞 <a href="tel:+79289887307">+7 (928) 988-73-07</a></div>' +
+          '<div class="contact-row">✉️ <a href="mailto:nikitakurdubov@gmail.com">nikitakurdubov@gmail.com</a></div>' +
+          '<div class="hint">Отвечаем в рабочее время, обычно в течение 2 часов.</div>' +
+        '</div>' +
+        '<div class="card" style="margin-top:16px">' +
+          '<div class="card-head"><h3>Мои обращения</h3></div>' +
+          (tickets.length ?
+            tickets.slice(0,15).map(t =>
+              '<div class="ticket">' +
+                '<div class="ticket-id">' + esc(t.number) + '</div>' +
+                '<div style="flex:1">' +
+                  '<div><b>' + esc(t.category) + '</b></div>' +
+                  '<div class="muted" style="margin-top:2px">' + esc(t.message.length > 90 ? t.message.slice(0,90) + '…' : t.message) + '</div>' +
+                  '<div class="muted" style="margin-top:4px;font-size:12px">' + fmtDateTime(t.ts) + ' · ' + esc(t.email) + '</div>' +
+                '</div>' +
+                '<div><span class="tag green">Открыт</span></div>' +
+              '</div>'
+            ).join('')
+          : '<div class="empty">Обращений пока нет</div>') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  el('fbSend').onclick = () => {
+    const res = el('fbResult');
+    res.className = 'form-msg';
+    res.textContent = '';
+
+    const db2 = loadDB();
+    const now = Date.now();
+    if(now - (db2.settings.lastFeedbackTs || 0) < 30000){
+      res.classList.add('err');
+      res.textContent = 'Слишком часто. Повторите отправку через 30 секунд.';
+      return;
+    }
+    const email = el('fbEmail').value.trim();
+    const msg = el('fbMsg').value.trim();
+    const cap = Number(el('fbCap').value);
+
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+      res.classList.add('err'); res.textContent = 'Укажите корректный email.'; return;
+    }
+    if(msg.length < 10){
+      res.classList.add('err'); res.textContent = 'Сообщение должно содержать минимум 10 символов.'; return;
+    }
+    if(cap !== (state.captcha.a + state.captcha.b)){
+      res.classList.add('err'); res.textContent = 'Неверный ответ на проверку от спама.'; return;
+    }
+
+    const number = 'PRT-' + (1001 + db2.tickets.length);
+    db2.tickets.push({
+      id: uuid(), number: number, ts: now,
+      category: el('fbCat').value, email: email, message: msg, status: 'open'
+    });
+    db2.settings.lastFeedbackTs = now;
+    saveDB(db2);
+
+    res.classList.add('ok');
+    res.innerHTML = 'Обращение <b>' + number + '</b> зарегистрировано. Ответ придёт на ' + esc(email) +
+      '. Срочный вопрос — <a href="tel:+79289887307">+7 (928) 988-73-07</a>.';
+
+    el('fbMsg').value = '';
+    el('fbCap').value = '';
+    setTimeout(() => { if(state.tab === 'support') renderSupport(); }, 2200);
+  };
+}
+
+/* =====================================================================
+   СИНХРОНИЗАЦИЯ МЕЖДУ ВКЛАДКАМИ
+   ===================================================================== */
+window.addEventListener('storage', e => {
+  if(e.key !== DB_KEY) return;
+  if(state.role === 'operator') renderClient();
+  if(op.shift) updateSyncBadge();
+});
+
+/* =====================================================================
+   СТАРТ
+   ===================================================================== */
+ensureSeed();
+updatePinDots();
+if(!navigator.onLine) updateSyncBadge();
+</script>
+</body>
+</html>
